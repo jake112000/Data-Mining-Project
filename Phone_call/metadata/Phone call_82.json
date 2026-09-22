@@ -1,0 +1,17 @@
+{
+    "label": "Phone call",
+    "start_ts": 1508224445000,
+    "end_ts": 1508225363000,
+    "avg_n_human": 1.0,
+    "duration": 918,
+    "sensors": [
+        "Door",
+        "Light_1",
+        "Light_2",
+        "Light_3",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

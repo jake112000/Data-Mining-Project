@@ -1,0 +1,23 @@
+{
+    "label": "Technical discussion",
+    "start_ts": 1514336227000,
+    "end_ts": 1514338289000,
+    "avg_n_human": 15.0,
+    "duration": 2062,
+    "sensors": [
+        "Aircon_1",
+        "Brightness_1",
+        "Door",
+        "Humidity_1",
+        "Light_1",
+        "Light_2",
+        "Light_3",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_L",
+        "Sound_P",
+        "Sound_R",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

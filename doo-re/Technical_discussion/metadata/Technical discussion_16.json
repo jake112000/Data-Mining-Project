@@ -1,0 +1,29 @@
+{
+    "label": "Technical discussion",
+    "start_ts": 1510723704000,
+    "end_ts": 1510726524000,
+    "avg_n_human": 8.0,
+    "duration": 2820,
+    "sensors": [
+        "Door",
+        "Light_1",
+        "Light_2",
+        "Light_3",
+        "Motion_1",
+        "Motion_2",
+        "Motion_3",
+        "Motion_4",
+        "Motion_5",
+        "Motion_6",
+        "Motion_7",
+        "Motion_8",
+        "Projector",
+        "Seat_10",
+        "Seat_12",
+        "Seat_3",
+        "Seat_4",
+        "Seat_5",
+        "Seat_9",
+        "Sound_R"
+    ]
+}

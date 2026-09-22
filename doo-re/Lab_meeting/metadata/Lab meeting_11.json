@@ -1,0 +1,18 @@
+{
+    "label": "Lab meeting",
+    "start_ts": 1507629642000,
+    "end_ts": 1507634904000,
+    "avg_n_human": 5.0,
+    "duration": 5262,
+    "sensors": [
+        "Door",
+        "Light_1",
+        "Light_2",
+        "Light_3",
+        "PodiumIR",
+        "Projector",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

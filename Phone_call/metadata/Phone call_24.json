@@ -1,0 +1,25 @@
+{
+    "label": "Phone call",
+    "start_ts": 1505205610000,
+    "end_ts": 1505206467000,
+    "avg_n_human": 1.0,
+    "duration": 857,
+    "sensors": [
+        "Aircon_1",
+        "Door",
+        "Humidity_1",
+        "Humidity_2",
+        "Motion_1",
+        "Motion_5",
+        "Motion_6",
+        "Motion_7",
+        "Motion_8",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_L",
+        "Sound_P",
+        "Sound_R",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

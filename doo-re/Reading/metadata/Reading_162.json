@@ -1,0 +1,19 @@
+{
+    "label": "Reading",
+    "start_ts": 1512651719000,
+    "end_ts": 1512656587000,
+    "avg_n_human": 1.0,
+    "duration": 4868,
+    "sensors": [
+        "Brightness_1",
+        "Brightness_2",
+        "Door",
+        "Humidity_1",
+        "Humidity_2",
+        "Light_2",
+        "PodiumIR",
+        "Sound_P",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

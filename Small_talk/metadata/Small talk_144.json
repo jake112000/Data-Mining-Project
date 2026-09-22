@@ -1,0 +1,19 @@
+{
+    "label": "Small talk",
+    "start_ts": 1514351610000,
+    "end_ts": 1514352034000,
+    "avg_n_human": 2.0,
+    "duration": 424,
+    "sensors": [
+        "Door",
+        "Humidity_1",
+        "Light_2",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_L",
+        "Sound_P",
+        "Sound_R",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

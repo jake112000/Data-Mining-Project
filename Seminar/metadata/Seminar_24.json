@@ -1,0 +1,19 @@
+{
+    "label": "Seminar",
+    "start_ts": 1512643139000,
+    "end_ts": 1512644665000,
+    "avg_n_human": 5.0,
+    "duration": 1526,
+    "sensors": [
+        "Brightness_2",
+        "Door",
+        "Humidity_1",
+        "Humidity_2",
+        "Light_2",
+        "PodiumIR",
+        "Projector",
+        "Sound_P",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "label": "Study together",
+    "start_ts": 1512297610000,
+    "end_ts": 1512305899000,
+    "avg_n_human": 2.0,
+    "duration": 8289,
+    "sensors": [
+        "Brightness_2",
+        "Door",
+        "Humidity_1",
+        "Humidity_2",
+        "Light_3",
+        "PodiumIR",
+        "Sound_P",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

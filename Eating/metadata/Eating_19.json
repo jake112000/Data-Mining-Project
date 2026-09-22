@@ -1,0 +1,15 @@
+{
+    "label": "Eating",
+    "start_ts": 1508211371000,
+    "end_ts": 1508212856000,
+    "avg_n_human": 1.0,
+    "duration": 1485,
+    "sensors": [
+        "Aircon_2",
+        "Door",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "label": "Reading",
+    "start_ts": 1508931032000,
+    "end_ts": 1508933796000,
+    "avg_n_human": 1.0,
+    "duration": 2764,
+    "sensors": [
+        "Door",
+        "Light_1",
+        "Light_2",
+        "Light_3",
+        "Motion_1",
+        "Motion_2",
+        "Motion_4",
+        "Motion_5",
+        "Motion_6",
+        "Motion_7",
+        "Motion_8",
+        "PodiumIR",
+        "Seat_2",
+        "Seat_9",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "label": "Study together",
+    "start_ts": 1508212966000,
+    "end_ts": 1508216171000,
+    "avg_n_human": 3.0,
+    "duration": 3205,
+    "sensors": [
+        "Door",
+        "Light_2",
+        "PodiumIR",
+        "Projector",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

@@ -1,0 +1,20 @@
+{
+    "label": "Eating",
+    "start_ts": 1510800666000,
+    "end_ts": 1510802221000,
+    "avg_n_human": 1.0,
+    "duration": 1555,
+    "sensors": [
+        "Door",
+        "Motion_1",
+        "Motion_2",
+        "Motion_5",
+        "Motion_6",
+        "Motion_7",
+        "Motion_8",
+        "Seat_1",
+        "Seat_7",
+        "Seat_8",
+        "Sound_R"
+    ]
+}

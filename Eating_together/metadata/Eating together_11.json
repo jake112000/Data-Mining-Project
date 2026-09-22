@@ -1,0 +1,20 @@
+{
+    "label": "Eating together",
+    "start_ts": 1511746380000,
+    "end_ts": 1511748018000,
+    "avg_n_human": 2.0,
+    "duration": 1638,
+    "sensors": [
+        "Brightness_1",
+        "Brightness_2",
+        "Door",
+        "Humidity_1",
+        "Humidity_2",
+        "Light_2",
+        "PodiumIR",
+        "Sound_P",
+        "Sound_R",
+        "Temperature_1",
+        "Temperature_2"
+    ]
+}

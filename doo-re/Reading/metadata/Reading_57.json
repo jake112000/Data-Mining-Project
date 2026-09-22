@@ -1,0 +1,15 @@
+{
+    "label": "Reading",
+    "start_ts": 1508051007000,
+    "end_ts": 1508055985000,
+    "avg_n_human": 1.0,
+    "duration": 4978,
+    "sensors": [
+        "Door",
+        "Light_2",
+        "PodiumIR",
+        "Sound_C",
+        "Sound_P",
+        "Sound_R"
+    ]
+}

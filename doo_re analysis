@@ -1,0 +1,244 @@
+import os
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# folder that stores the dataset
+data_folder = "doo-re"
+
+# List of activity folders in the dataset
+activities = ["Eating", "Eating_together", "Lab_meeting", "Phone_call", "Reading", "Seminar", "Small_talk", "Study_together", "Technical_discussion"]
+
+# sensors that give number readings, everything else just turns on/off
+number_sensors = ["Brightness", "Humidity", "Temperature", "Sound", "Podium"]
+
+# Holds every episode loaded
+all_data = []
+
+
+def load_data():
+    for activity in activities:
+        meta_folder = os.path.join(data_folder, activity, "metadata")
+        sensor_folder = os.path.join(data_folder, activity, "sensor")
+
+        if not os.path.exists(meta_folder):
+            continue
+
+        files = os.listdir(meta_folder)
+        for file_name in files:
+            if not file_name.endswith(".json"):
+                continue
+
+            meta_path = os.path.join(meta_folder, file_name)
+            meta_file = open(meta_path, "r", encoding="utf-8")
+            meta = json.load(meta_file)
+            meta_file.close()
+
+            base_name = file_name.replace(".json", "")
+            sensor_path = os.path.join(sensor_folder, base_name + ".csv")
+
+            if not os.path.exists(sensor_path):
+                print("could not find sensor file for", base_name)
+                continue
+
+            sensor_data = pd.read_csv(sensor_path)
+            sensor_data["timestamp"] = pd.to_datetime(sensor_data["timestamp"], unit="ms")
+            sensor_data["timestamp"] = sensor_data["timestamp"].dt.tz_localize("UTC").dt.tz_convert("Asia/Seoul")
+
+            episode = {}
+            episode["activity"] = activity
+            episode["id"] = base_name
+            episode["meta"] = meta
+            episode["sensor_data"] = sensor_data
+
+            all_data.append(episode)
+
+    print("loaded", len(all_data), "episodes")
+
+
+def print_summary_stats():
+    rows = []
+    for ep in all_data:
+        m = ep["meta"]
+
+        if "duration" in m:
+            duration = m["duration"]
+        else:
+            duration = m.get("Duration (sec)")
+
+        if "avg_n_human" in m:
+            people = m["avg_n_human"]
+        else:
+            people = m.get("Avg_n_humans")
+
+        row = {}
+        row["activity"] = ep["activity"]
+        row["duration"] = duration
+        row["people"] = people
+        row["num_readings"] = len(ep["sensor_data"])
+        rows.append(row)
+
+    summary = pd.DataFrame(rows)
+
+    print("")
+    print("Overall stats:")
+    print(summary[["duration", "people", "num_readings"]].describe())
+
+    print("")
+    print("Stats per activity:")
+    print(summary.groupby("activity")[["duration", "people", "num_readings"]].describe())
+
+    return summary
+
+
+def make_features():
+    feature_rows = []
+    labels = []
+
+    for ep in all_data:
+        features = {}
+        sensor_names = ep["sensor_data"]["sensor_name"].unique()
+
+        for name in sensor_names:
+            is_number_sensor = False
+            for prefix in number_sensors:
+                if name.startswith(prefix):
+                    is_number_sensor = True
+
+            rows_for_sensor = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == name]
+
+            if is_number_sensor:
+                values = pd.to_numeric(rows_for_sensor["value"], errors="coerce")
+                features[name + "_mean"] = values.mean()
+                features[name + "_std"] = values.std()
+                features[name + "_max"] = values.max()
+            else:
+                features[name + "_count"] = len(rows_for_sensor)
+
+        feature_rows.append(features)
+        labels.append(ep["activity"])
+
+    features_table = pd.DataFrame(feature_rows)
+    features_table = features_table.fillna(0)
+    labels_table = pd.Series(labels)
+
+    print("")
+    print("feature table shape:", features_table.shape)
+    print("labels count:")
+    print(labels_table.value_counts())
+
+    return features_table, labels_table
+
+#  Creates a bar graph showing the number of episodes each activity type recorded
+def plot_episode_counts(summary):
+    counts = summary["activity"].value_counts()
+    #Formoatting the graph
+    plt.figure(figsize=(8, 5))
+    plt.barh(counts.index, counts.values)
+    plt.title("Number of episodes per activity")
+    plt.xlabel("count")
+    plt.tight_layout()
+    plt.savefig("episode_counts.png")
+    plt.close()
+
+# Creates a box plot of the duration of each activity type
+def plot_duration_boxplot(summary):
+    activity_list = summary["activity"].unique()
+    activity_list = sorted(activity_list)
+
+    box_data = []
+    for activity in activity_list:
+        values = summary[summary["activity"] == activity]["duration"]
+        box_data.append(values.dropna().values)
+    #Formoatting the graph
+    plt.figure(figsize=(10, 5))
+    plt.boxplot(box_data, tick_labels=activity_list)
+    plt.title("Duration by activity")
+    plt.ylabel("duration (sec)")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("duration_boxplot.png")
+    plt.close()
+
+# Creates a boxplot showing the number of individuals participating in each activity type
+def plot_people_boxplot(summary):
+    activity_list = summary["activity"].unique()
+    activity_list = sorted(activity_list)
+
+    box_data = []
+    for activity in activity_list:
+        values = summary[summary["activity"] == activity]["people"]
+        box_data.append(values.dropna().values)
+    #Formatting the graph
+    plt.figure(figsize=(10, 5))
+    plt.boxplot(box_data, tick_labels=activity_list)
+    plt.title("Average participants by activity")
+    plt.ylabel("avg. participants")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("people_boxplot.png")
+    plt.close()
+
+#Counts the number of times the door is activated in an episode. Used to generate the oor use boxplot
+def count_door_activations():
+    rows = []
+    for ep in all_data:
+        door_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].str.startswith("Door")]
+        count = len(door_rows)
+        row = {}
+        row["activity"] = ep["activity"]
+        row["door_count"] = count
+        rows.append(row)
+
+    door_table = pd.DataFrame(rows)
+    return door_table
+
+# Creates a boxplot showing the number of times the door is activated in each activity type
+def plot_door_use_boxplot(door_table):
+    activity_list = door_table["activity"].unique()
+    activity_list = sorted(activity_list)
+
+    box_data = []
+    for activity in activity_list:
+        values = door_table[door_table["activity"] == activity]["door_count"]
+        box_data.append(values.dropna().values)
+    #Formatting the graph
+    plt.figure(figsize=(10, 5))
+    plt.boxplot(box_data, tick_labels=activity_list)
+    plt.title("Door activation count by activity")
+    plt.ylabel("num activations")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("door_use_boxplot.png")
+    plt.close()  
+
+def print_examples():
+    already_shown = []
+    print("")
+    print("One example per activity:")
+    for ep in all_data:
+        if ep["activity"] in already_shown:
+            continue
+        already_shown.append(ep["activity"])
+
+        m = ep["meta"]
+        print("")
+        print(ep["id"])
+        print("label:", m.get("label"))
+        print("duration:", m.get("duration"))
+        print("sensors:", m.get("sensors"))
+        print(ep["sensor_data"].head())
+
+
+# run everything
+load_data()
+summary = print_summary_stats()
+features, labels = make_features()
+door_table = count_door_activations()
+plot_episode_counts(summary)
+plot_duration_boxplot(summary)
+plot_people_boxplot(summary)
+plot_door_use_boxplot(door_table)
+print_examples()
+
+print("done")
