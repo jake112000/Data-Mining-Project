@@ -15,7 +15,6 @@ number_sensors = ["Brightness", "Humidity", "Temperature", "Sound", "Podium"]
 # Holds every episode loaded
 all_data = []
 
-#test
 def load_data():
     for activity in activities:
         meta_folder = os.path.join(data_folder, activity, "metadata")
