@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # folder that stores the dataset
 data_folder = "doo-re"
-
+#test change
 # List of activity folders in the dataset
 activities = ["Eating", "Eating_together", "Lab_meeting", "Phone_call", "Reading", "Seminar", "Small_talk", "Study_together", "Technical_discussion"]
 
