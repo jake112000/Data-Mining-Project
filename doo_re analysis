@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # folder that stores the dataset
 data_folder = "doo-re"
-#test change
+
 # List of activity folders in the dataset
 activities = ["Eating", "Eating_together", "Lab_meeting", "Phone_call", "Reading", "Seminar", "Small_talk", "Study_together", "Technical_discussion"]
 
@@ -211,6 +211,88 @@ def plot_door_use_boxplot(door_table):
     plt.savefig("door_use_boxplot.png")
     plt.close()  
 
+# Computes the average brightness value for each sensor channel in each episode, excluding zeros and missing values.
+def count_brightness_readings():
+    rows = []
+    for ep in all_data:
+        brightness_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.startswith("Brightness", na=False)].copy()
+        for sensor_name in ["Brightness_1", "Brightness_2"]:
+            sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
+            values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
+            values = values[values != 0]
+            avg_value = values.mean() if not values.empty else None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = sensor_name
+            row["brightness_avg_value"] = avg_value
+            rows.append(row)
+
+    brightness_table = pd.DataFrame(rows)
+    return brightness_table
+
+# Creates separate boxplots for Brightness_1 and Brightness_2 by activity type
+def plot_brightness_boxplot(brightness_table):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    sensor_names = ["Brightness_1", "Brightness_2"]
+
+    for ax, sensor_name in zip(axes, sensor_names):
+        activity_list = sorted(brightness_table["activity"].unique())
+        box_data = []
+        for activity in activity_list:
+            values = brightness_table[(brightness_table["activity"] == activity) & (brightness_table["sensor_name"] == sensor_name)]["brightness_avg_value"]
+            box_data.append(values.dropna().values)
+
+        ax.boxplot(box_data, tick_labels=activity_list)
+        ax.set_title(f"{sensor_name} by activity")
+        ax.set_ylabel("avg. brightness")
+        ax.tick_params(axis='x', rotation=45)
+
+    plt.tight_layout()
+    plt.savefig("brightness_boxplots.png")
+    plt.close()
+
+# Computes the average humidity value for each sensor channel in each episode, excluding zeros and missing values.
+def count_humidity_readings():
+    rows = []
+    for ep in all_data:
+        humidity_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.startswith("Humidity", na=False)].copy()
+        for sensor_name in ["Humidity_1", "Humidity_2"]:
+            sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
+            values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
+            values = values[values != 0]
+            avg_value = values.mean() if not values.empty else None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = sensor_name
+            row["humidity_avg_value"] = avg_value
+            rows.append(row)
+
+    humidity_table = pd.DataFrame(rows)
+    return humidity_table
+
+# Creates separate boxplots for Humidity_1 and Humidity_2 by activity type
+def plot_humidity_boxplot(humidity_table):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    sensor_names = ["Humidity_1", "Humidity_2"]
+
+    for ax, sensor_name in zip(axes, sensor_names):
+        activity_list = sorted(humidity_table["activity"].unique())
+        box_data = []
+        for activity in activity_list:
+            values = humidity_table[(humidity_table["activity"] == activity) & (humidity_table["sensor_name"] == sensor_name)]["humidity_avg_value"]
+            box_data.append(values.dropna().values)
+
+        ax.boxplot(box_data, tick_labels=activity_list)
+        ax.set_title(f"{sensor_name} by activity")
+        ax.set_ylabel("avg. humidity")
+        ax.tick_params(axis='x', rotation=45)
+
+    plt.tight_layout()
+    plt.savefig("humidity_boxplots.png")
+    plt.close()
+
 def print_examples():
     already_shown = []
     print("")
@@ -234,10 +316,14 @@ load_data()
 summary = print_summary_stats()
 features, labels = make_features()
 door_table = count_door_activations()
+brightness_table = count_brightness_readings()
+humidity_table = count_humidity_readings()
 plot_episode_counts(summary)
 plot_duration_boxplot(summary)
 plot_people_boxplot(summary)
 plot_door_use_boxplot(door_table)
+plot_brightness_boxplot(brightness_table)
+plot_humidity_boxplot(humidity_table)
 print_examples()
 
 print("done")
