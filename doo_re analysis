@@ -96,15 +96,13 @@ def make_features():
 
     for ep in all_data:
         features = {}
-        sensor_names = ep["sensor_data"]["sensor_name"].unique()
+        sensor_groups = ep["sensor_data"].groupby("sensor_name")
 
-        for name in sensor_names:
+        for name, rows_for_sensor in sensor_groups:
             is_number_sensor = False
             for prefix in number_sensors:
                 if name.startswith(prefix):
                     is_number_sensor = True
-
-            rows_for_sensor = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == name]
 
             if is_number_sensor:
                 values = pd.to_numeric(rows_for_sensor["value"], errors="coerce")
@@ -215,7 +213,6 @@ def plot_door_use_boxplot(door_table):
 def count_brightness_readings():
     rows = []
     for ep in all_data:
-        brightness_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.startswith("Brightness", na=False)].copy()
         for sensor_name in ["Brightness_1", "Brightness_2"]:
             sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
             values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
@@ -256,7 +253,6 @@ def plot_brightness_boxplot(brightness_table):
 def count_humidity_readings():
     rows = []
     for ep in all_data:
-        humidity_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.startswith("Humidity", na=False)].copy()
         for sensor_name in ["Humidity_1", "Humidity_2"]:
             sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
             values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
@@ -293,6 +289,46 @@ def plot_humidity_boxplot(humidity_table):
     plt.savefig("humidity_boxplots.png")
     plt.close()
 
+# Computes the average temperature value for each sensor channel in each episode, excluding zeros and missing values.
+def count_temperature_readings():
+    rows = []
+    for ep in all_data:
+        for sensor_name in ["Temperature_1", "Temperature_2"]:
+            sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
+            values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
+            values = values[values != 0]
+            avg_value = values.mean() if not values.empty else None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = sensor_name
+            row["temperature_avg_value"] = avg_value
+            rows.append(row)
+
+    temperature_table = pd.DataFrame(rows)
+    return temperature_table
+
+# Creates separate boxplots for Temperature_1 and Temperature_2 by activity type
+def plot_temperature_boxplot(temperature_table):
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+    sensor_names = ["Temperature_1", "Temperature_2"]
+    for ax, sensor_name in zip(axes, sensor_names):
+        activity_list = sorted(temperature_table["activity"].unique())
+        box_data = []
+        for activity in activity_list:
+            values = temperature_table[(temperature_table["activity"] == activity) & (temperature_table["sensor_name"] == sensor_name)]["temperature_avg_value"]
+            box_data.append(values.dropna().values)
+
+        ax.boxplot(box_data, tick_labels=activity_list)
+        ax.set_title(f"{sensor_name} by activity")
+        ax.set_ylabel("avg. temperature")
+        ax.tick_params(axis='x', rotation=45)
+
+    plt.tight_layout()
+    plt.savefig("temperature_boxplots.png")
+    plt.close()
+
+
 def print_examples():
     already_shown = []
     print("")
@@ -318,12 +354,14 @@ features, labels = make_features()
 door_table = count_door_activations()
 brightness_table = count_brightness_readings()
 humidity_table = count_humidity_readings()
+temperature_table = count_temperature_readings()
 plot_episode_counts(summary)
 plot_duration_boxplot(summary)
 plot_people_boxplot(summary)
 plot_door_use_boxplot(door_table)
 plot_brightness_boxplot(brightness_table)
 plot_humidity_boxplot(humidity_table)
+plot_temperature_boxplot(temperature_table)
 print_examples()
 
 print("done")
