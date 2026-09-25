@@ -89,44 +89,6 @@ def print_summary_stats():
 
     return summary
 
-
-def make_features():
-    feature_rows = []
-    labels = []
-
-    for ep in all_data:
-        features = {}
-        sensor_groups = ep["sensor_data"].groupby("sensor_name")
-
-        for name, rows_for_sensor in sensor_groups:
-            is_number_sensor = False
-            for prefix in number_sensors:
-                if name.startswith(prefix):
-                    is_number_sensor = True
-
-            if is_number_sensor:
-                values = pd.to_numeric(rows_for_sensor["value"], errors="coerce")
-                features[name + "_mean"] = values.mean()
-                features[name + "_std"] = values.std()
-                features[name + "_max"] = values.max()
-            else:
-                features[name + "_count"] = len(rows_for_sensor)
-
-        feature_rows.append(features)
-        labels.append(ep["activity"])
-
-    features_table = pd.DataFrame(feature_rows)
-    features_table = features_table.fillna(0)
-    labels_table = pd.Series(labels)
-
-    print("")
-    print("feature table shape:", features_table.shape)
-    print("labels count:")
-    print(labels_table.value_counts())
-
-    return features_table, labels_table
-
-
 def make_sensor_inventory():
     sensor_stats = {}
 
@@ -200,7 +162,7 @@ def make_sensor_inventory():
 #  Creates a bar graph showing the number of episodes each activity type recorded
 def plot_episode_counts(summary):
     counts = summary["activity"].value_counts()
-    #Formoatting the graph
+    #Formatting the graph
     plt.figure(figsize=(8, 5))
     plt.barh(counts.index, counts.values)
     plt.title("Number of episodes per activity")
@@ -218,7 +180,7 @@ def plot_duration_boxplot(summary):
     for activity in activity_list:
         values = summary[summary["activity"] == activity]["duration"]
         box_data.append(values.dropna().values)
-    #Formoatting the graph
+    #Formatting the graph
     plt.figure(figsize=(10, 5))
     plt.boxplot(box_data, tick_labels=activity_list)
     plt.title("Duration by activity")
@@ -422,7 +384,6 @@ def print_examples():
 load_data()
 sensor_inventory = make_sensor_inventory()
 summary = print_summary_stats()
-features, labels = make_features()
 door_table = count_door_activations()
 brightness_table = count_brightness_readings()
 humidity_table = count_humidity_readings()
