@@ -20,7 +20,7 @@ Motion_7,Boolean,9991,367,9
 Motion_8,Boolean,10477,370,9
 PodiumIR,Numeric,159559,673,9
 Projector,Event/state,194,107,8
-Projector ,Event/state,1,1,1
+Proj,Event/state,1,1,1
 Seat_1,Boolean,700,120,9
 Seat_10,Boolean,293,118,9
 Seat_11,Boolean,327,110,8
