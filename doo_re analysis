@@ -126,6 +126,77 @@ def make_features():
 
     return features_table, labels_table
 
+
+def make_sensor_inventory():
+    sensor_stats = {}
+
+    for ep in all_data:
+        sensor_groups = ep["sensor_data"].groupby("sensor_name")
+
+        for sensor_name, sensor_rows in sensor_groups:
+            if sensor_name not in sensor_stats:
+                sensor_stats[sensor_name] = {
+                    "total_readings": 0,
+                    "episodes_present": 0,
+                    "activities": [],
+                    "has_numeric_values": False,
+                    "has_boolean_values": False,
+                    "has_other_values": False,
+                }
+
+            stats = sensor_stats[sensor_name]
+            stats["total_readings"] += len(sensor_rows)
+            stats["episodes_present"] += 1
+
+            if ep["activity"] not in stats["activities"]:
+                stats["activities"].append(ep["activity"])
+
+            values = sensor_rows["value"].dropna()
+            if not values.empty:
+                numeric_values = pd.to_numeric(values, errors="coerce")
+                boolean_values = values.astype(str).str.lower().isin(["true", "false"])
+
+                if numeric_values.notna().any():
+                    stats["has_numeric_values"] = True
+                if boolean_values.any():
+                    stats["has_boolean_values"] = True
+                if (~numeric_values.notna() & ~boolean_values).any():
+                    stats["has_other_values"] = True
+
+    inventory_rows = []
+    for sensor_name in sorted(sensor_stats):
+        stats = sensor_stats[sensor_name]
+        value_types = []
+
+        if stats["has_numeric_values"]:
+            value_types.append("Numeric")
+        if stats["has_boolean_values"]:
+            value_types.append("Boolean")
+        if stats["has_other_values"]:
+            value_types.append("Event/state")
+
+        if len(value_types) == 0:
+            value_type = "Unknown"
+        elif len(value_types) == 1:
+            value_type = value_types[0]
+        else:
+            value_type = "Mixed"
+
+        inventory_rows.append({
+            "sensor_name": sensor_name,
+            "value_type": value_type,
+            "total_readings": stats["total_readings"],
+            "episodes_present": stats["episodes_present"],
+            "activities_present": len(stats["activities"]),
+        })
+
+    inventory = pd.DataFrame(inventory_rows)
+    inventory.to_csv("sensor_inventory.csv", index=False)
+    print("\nSensor inventory:")
+    print(inventory.to_string(index=False))
+    print("\nSaved sensor inventory to sensor_inventory.csv")
+    return inventory
+
 #  Creates a bar graph showing the number of episodes each activity type recorded
 def plot_episode_counts(summary):
     counts = summary["activity"].value_counts()
@@ -349,6 +420,7 @@ def print_examples():
 
 # run everything
 load_data()
+sensor_inventory = make_sensor_inventory()
 summary = print_summary_stats()
 features, labels = make_features()
 door_table = count_door_activations()
