@@ -362,6 +362,46 @@ def plot_temperature_boxplot(temperature_table):
     plt.close()
 
 
+# Computes the average sound value for each sensor channel in each episode, excluding zeros and missing values.
+def count_sound_readings():
+    rows = []
+    for ep in all_data:
+        for sensor_name in ["Sound_C", "Sound_L", "Sound_P", "Sound_R"]:
+            sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name].copy()
+            values = pd.to_numeric(sensor_rows["value"], errors="coerce").dropna()
+            values = values[values != 0]
+            avg_value = values.mean() if not values.empty else None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = sensor_name
+            row["sound_avg_value"] = avg_value
+            rows.append(row)
+
+    sound_table = pd.DataFrame(rows)
+    return sound_table
+
+# Creates a boxplot image for each sound sensor channel.
+def plot_sound_boxplot(sound_table):
+    sensor_names = ["Sound_C", "Sound_L", "Sound_P", "Sound_R"]
+    activity_list = sorted(sound_table["activity"].unique())
+
+    for sensor_name in sensor_names:
+        box_data = []
+        for activity in activity_list:
+            values = sound_table[(sound_table["activity"] == activity) & (sound_table["sensor_name"] == sensor_name)]["sound_avg_value"]
+            box_data.append(values.dropna().values)
+
+        plt.figure(figsize=(10, 5))
+        plt.boxplot(box_data, tick_labels=activity_list)
+        plt.title(f"{sensor_name} by activity")
+        plt.ylabel("avg. sound")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(sensor_name.lower() + "_boxplot.png")
+        plt.close()
+
+
 def print_examples():
     already_shown = []
     print("")
@@ -388,6 +428,7 @@ door_table = count_door_activations()
 brightness_table = count_brightness_readings()
 humidity_table = count_humidity_readings()
 temperature_table = count_temperature_readings()
+sound_table = count_sound_readings()
 plot_episode_counts(summary)
 plot_duration_boxplot(summary)
 plot_people_boxplot(summary)
@@ -395,6 +436,7 @@ plot_door_use_boxplot(door_table)
 plot_brightness_boxplot(brightness_table)
 plot_humidity_boxplot(humidity_table)
 plot_temperature_boxplot(temperature_table)
+plot_sound_boxplot(sound_table)
 print_examples()
 
 print("done")
