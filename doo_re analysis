@@ -15,7 +15,8 @@ number_sensors = ["Brightness", "Humidity", "Temperature", "Sound", "Podium"]
 # Holds every episode loaded
 all_data = []
 
-def load_data():
+# Loads the metadata and sensor data for each episode.
+def load_episodes():
     for activity in activities:
         meta_folder = os.path.join(data_folder, activity, "metadata")
         sensor_folder = os.path.join(data_folder, activity, "sensor")
@@ -51,7 +52,8 @@ def load_data():
 
             all_data.append(episode)
 
-def print_summary_stats():
+# Creates a table with summary information for each episode.
+def make_summary_table():
     rows = []
     for ep in all_data:
         m = ep["meta"]
@@ -77,8 +79,7 @@ def print_summary_stats():
 
     return summary
 
-#Creates a table with a list of all sensor names, their value type, their total number of readings,
-#number of episode appearances, and what activities they appear in
+# Creates a table with each sensor's type, number of readings, episode appearances, and activities.
 def make_sensor_inventory():
     sensor_stats = {}
 
@@ -556,9 +557,9 @@ def plot_motion_heatmap(sensor_table):
 
 
 # run everything
-load_data()
+load_episodes()
 sensor_inventory = make_sensor_inventory()
-summary = print_summary_stats()
+summary = make_summary_table()
 door_table = count_door_activations()
 brightness_table = count_brightness_readings()
 humidity_table = count_humidity_readings()
