@@ -37,7 +37,6 @@ def load_data():
             sensor_path = os.path.join(sensor_folder, base_name + ".csv")
 
             if not os.path.exists(sensor_path):
-                print("could not find sensor file for", base_name)
                 continue
 
             sensor_data = pd.read_csv(sensor_path)
@@ -51,9 +50,6 @@ def load_data():
             episode["sensor_data"] = sensor_data
 
             all_data.append(episode)
-
-    print("loaded", len(all_data), "episodes")
-
 
 def print_summary_stats():
     rows = []
@@ -79,16 +75,10 @@ def print_summary_stats():
 
     summary = pd.DataFrame(rows)
 
-    print("")
-    print("Overall stats:")
-    print(summary[["duration", "people", "num_readings"]].describe())
-
-    print("")
-    print("Stats per activity:")
-    print(summary.groupby("activity")[["duration", "people", "num_readings"]].describe())
-
     return summary
 
+#Creates a table with a list of all sensor names, their value type, their total number of readings,
+#number of episode appearances, and what activities they appear in
 def make_sensor_inventory():
     sensor_stats = {}
 
@@ -154,9 +144,6 @@ def make_sensor_inventory():
 
     inventory = pd.DataFrame(inventory_rows)
     inventory.to_csv("sensor_inventory.csv", index=False)
-    print("\nSensor inventory:")
-    print(inventory.to_string(index=False))
-    print("\nSaved sensor inventory to sensor_inventory.csv")
     return inventory
 
 #  Creates a bar graph showing the number of episodes each activity type recorded
@@ -241,6 +228,68 @@ def plot_door_use_boxplot(door_table):
     plt.tight_layout()
     plt.savefig("door_use_boxplot.png")
     plt.close()  
+
+# Counts projector activations in each episode. Trailing spaces in sensor names are ignored.
+def count_projector_activations():
+    rows = []
+    for ep in all_data:
+        projector_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.strip() == "Projector"]
+        count = len(projector_rows)
+        row = {}
+        row["activity"] = ep["activity"]
+        row["projector_count"] = count
+        rows.append(row)
+
+    projector_table = pd.DataFrame(rows)
+    return projector_table
+
+# Creates a boxplot showing projector activations by activity type.
+def plot_projector_use_boxplot(projector_table):
+    activity_list = sorted(projector_table["activity"].unique())
+    box_data = []
+    for activity in activity_list:
+        values = projector_table[projector_table["activity"] == activity]["projector_count"]
+        box_data.append(values.dropna().values)
+
+    plt.figure(figsize=(10, 5))
+    plt.boxplot(box_data, tick_labels=activity_list)
+    plt.title("Projector activation count by activity")
+    plt.ylabel("num activations")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("projector_use_boxplot.png")
+    plt.close()
+
+# Counts Aircon readings in each episode.
+def count_aircon_activations():
+    rows = []
+    for ep in all_data:
+        aircon_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"].astype(str).str.startswith("Aircon")]
+        count = len(aircon_rows)
+        row = {}
+        row["activity"] = ep["activity"]
+        row["aircon_count"] = count
+        rows.append(row)
+
+    aircon_table = pd.DataFrame(rows)
+    return aircon_table
+
+# Creates a boxplot showing Aircon readings by activity type.
+def plot_aircon_use_boxplot(aircon_table):
+    activity_list = sorted(aircon_table["activity"].unique())
+    box_data = []
+    for activity in activity_list:
+        values = aircon_table[aircon_table["activity"] == activity]["aircon_count"]
+        box_data.append(values.dropna().values)
+
+    plt.figure(figsize=(10, 5))
+    plt.boxplot(box_data, tick_labels=activity_list)
+    plt.title("Aircon reading count by activity")
+    plt.ylabel("num readings")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("aircon_use_boxplot.png")
+    plt.close()
 
 # Computes the average brightness value for each sensor channel in each episode, excluding zeros and missing values.
 def count_brightness_readings():
@@ -402,22 +451,108 @@ def plot_sound_boxplot(sound_table):
         plt.close()
 
 
-def print_examples():
-    already_shown = []
-    print("")
-    print("One example per activity:")
-    for ep in all_data:
-        if ep["activity"] in already_shown:
-            continue
-        already_shown.append(ep["activity"])
+# Computes how often each seat sensor reports True in each episode.
+def count_seat_occupancy():
+    rows = []
+    seat_names = [
+        "Seat_1", "Seat_2", "Seat_3", "Seat_4", "Seat_5", "Seat_6",
+        "Seat_7", "Seat_8", "Seat_9", "Seat_10", "Seat_11", "Seat_12"
+    ]
 
-        m = ep["meta"]
-        print("")
-        print(ep["id"])
-        print("label:", m.get("label"))
-        print("duration:", m.get("duration"))
-        print("sensors:", m.get("sensors"))
-        print(ep["sensor_data"].head())
+    for ep in all_data:
+        for seat_name in seat_names:
+            seat_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == seat_name]
+            values = seat_rows["value"].dropna().astype(str).str.lower()
+
+            if len(values) > 0:
+                occupied_percent = (values == "true").mean() * 100
+            else:
+                occupied_percent = None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = seat_name
+            row["occupied_percent"] = occupied_percent
+            rows.append(row)
+
+    seat_table = pd.DataFrame(rows)
+    return seat_table
+
+
+# Creates a heatmap of average seat occupancy by activity.
+def plot_seat_heatmap(seat_table):
+    table = seat_table.pivot_table(
+        index="activity",
+        columns="sensor_name",
+        values="occupied_percent",
+        aggfunc="mean"
+    )
+    table = table.reindex(sorted(table.index))
+    table = table.reindex(sorted(table.columns), axis=1)
+
+    plt.figure(figsize=(12, 6))
+    plt.imshow(table, aspect="auto", cmap="Blues", vmin=0, vmax=100)
+    plt.colorbar(label="average occupied readings (%)")
+    plt.xticks(range(len(table.columns)), table.columns, rotation=45)
+    plt.yticks(range(len(table.index)), table.index)
+    plt.title("Average seat occupancy by activity")
+    plt.xlabel("seat sensor")
+    plt.ylabel("activity")
+    plt.tight_layout()
+    plt.savefig("seat_occupancy_heatmap.png")
+    plt.close()
+
+
+# Computes the percentage that each motion sensor reports True in each episode.
+def count_motion_activation():
+    rows = []
+    sensor_names = [
+        "Motion_1", "Motion_2", "Motion_3", "Motion_4", "Motion_5", "Motion_6",
+        "Motion_7", "Motion_8"
+    ]
+
+    for ep in all_data:
+        for sensor_name in sensor_names:
+            sensor_rows = ep["sensor_data"][ep["sensor_data"]["sensor_name"] == sensor_name]
+            values = sensor_rows["value"].dropna().astype(str).str.lower()
+
+            if len(values) > 0:
+                activated_percent = (values == "true").mean() * 100
+            else:
+                activated_percent = None
+
+            row = {}
+            row["activity"] = ep["activity"]
+            row["sensor_name"] = sensor_name
+            row["activated_percent"] = activated_percent
+            rows.append(row)
+
+    sensor_table = pd.DataFrame(rows)
+    return sensor_table
+
+
+# Creates a heatmap of average motion sensor activation by activity.
+def plot_motion_heatmap(sensor_table):
+    table = sensor_table.pivot_table(
+        index="activity",
+        columns="sensor_name",
+        values="activated_percent",
+        aggfunc="mean"
+    )
+    table = table.reindex(sorted(table.index))
+    table = table.reindex(sorted(table.columns), axis=1)
+
+    plt.figure(figsize=(12, 6))
+    plt.imshow(table, aspect="auto", cmap="Blues", vmin=0, vmax=100)
+    plt.colorbar(label="average True readings (%)")
+    plt.xticks(range(len(table.columns)), table.columns, rotation=45)
+    plt.yticks(range(len(table.index)), table.index)
+    plt.title("Average True reading by activity")
+    plt.xlabel("motion sensor")
+    plt.ylabel("activity")
+    plt.tight_layout()
+    plt.savefig("motion_activation_heatmap.png")
+    plt.close()
 
 
 # run everything
@@ -429,6 +564,10 @@ brightness_table = count_brightness_readings()
 humidity_table = count_humidity_readings()
 temperature_table = count_temperature_readings()
 sound_table = count_sound_readings()
+seat_table = count_seat_occupancy()
+motion_table = count_motion_activation()
+projector_table = count_projector_activations()
+aircon_table = count_aircon_activations()
 plot_episode_counts(summary)
 plot_duration_boxplot(summary)
 plot_people_boxplot(summary)
@@ -437,6 +576,7 @@ plot_brightness_boxplot(brightness_table)
 plot_humidity_boxplot(humidity_table)
 plot_temperature_boxplot(temperature_table)
 plot_sound_boxplot(sound_table)
-print_examples()
-
-print("done")
+plot_seat_heatmap(seat_table)
+plot_motion_heatmap(motion_table)
+plot_projector_use_boxplot(projector_table)
+plot_aircon_use_boxplot(aircon_table)
