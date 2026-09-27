@@ -548,6 +548,27 @@ def plot_motion_heatmap(sensor_table):
     plt.savefig("motion_activation_heatmap.png")
     plt.close()
 
+def describe_duration_and_people(summary):
+    duration_stats = summary.groupby("activity")["duration"].describe()
+    people_stats = summary.groupby("activity")["people"].describe()
+
+    duration_stats.to_csv("duration_stats.csv")
+    people_stats.to_csv("people_stats.csv")
+
+
+def describe_door_activations(door_table):
+    stats = door_table.groupby("activity")["door_count"].describe()
+    stats.to_csv("door_stats.csv")
+
+
+def describe_projector_activations(projector_table):
+    stats = projector_table.groupby("activity")["projector_count"].describe()
+    stats.to_csv("projector_stats.csv")
+
+
+def describe_aircon_activations(aircon_table):
+    stats = aircon_table.groupby("activity")["aircon_count"].describe()
+    stats.to_csv("aircon_stats.csv")
 
 # run everything
 load_episodes()
@@ -574,3 +595,7 @@ plot_seat_heatmap(seat_table)
 plot_motion_heatmap(motion_table)
 plot_projector_use_boxplot(projector_table)
 plot_aircon_use_boxplot(aircon_table)
+describe_aircon_activations(aircon_table)
+describe_door_activations(door_table)
+describe_duration_and_people(summary)
+describe_projector_activations(projector_table)
