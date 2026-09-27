@@ -58,15 +58,8 @@ def make_summary_table():
     for ep in all_data:
         m = ep["meta"]
 
-        if "duration" in m:
-            duration = m["duration"]
-        else:
-            duration = m.get("Duration (sec)")
-
-        if "avg_n_human" in m:
-            people = m["avg_n_human"]
-        else:
-            people = m.get("Avg_n_humans")
+        duration = m["duration"]
+        people = m["avg_n_human"]
 
         row = {}
         row["activity"] = ep["activity"]
